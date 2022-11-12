@@ -29,7 +29,7 @@
             <router-link class="link" :to="{ name: ROUTE_NAMES.BLOGS }"
               >Blogs</router-link
             >
-            <router-link v-if="admin" class="link" :to="{ name: 'CreatePost' }"
+            <router-link v-if="user" class="link" :to="{ name: 'CreatePost' }"
               >Create Post</router-link
             >
             <router-link
@@ -65,7 +65,7 @@ export default {
   },
   data() {
     return {
-      admin: null,
+      // admin: null,
       user: null,
     };
   },

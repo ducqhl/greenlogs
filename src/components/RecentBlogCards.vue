@@ -1,9 +1,9 @@
 <template>
-  <div class="blog-card-wrapper">
+  <div class="blog-cards-wrapper">
     <div class="container">
       <h3 v-show="!hideTitle">View More Recent Blogs</h3>
       <div class="blog-cards">
-        <BlogCard v-for="post in sampleBlogCards" :key="post.id" :post="post" />
+        <BlogCard v-for="post in blogPostsCards" :key="post.id" :post="post" />
       </div>
     </div>
   </div>
@@ -17,12 +17,12 @@ export default {
   components: {
     BlogCard,
   },
-  props: ["sampleBlogCards", "hideTitle"],
+  props: ["blogPostsCards", "hideTitle"],
 };
 </script>
 
 <style lang="scss" scoped>
-.blog-card-wrapper {
+.blog-cards-wrapper {
   position: relative;
   background: #f1f1f1;
 

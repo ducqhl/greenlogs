@@ -19,7 +19,7 @@ export const MUTATIONS = {
   FILTER_BLOG_POST: "FILTER_BLOG_POST",
   UPDATE_USER: "UPDATE_USER",
   SET_PROFILE: "SET_PROFILE",
-  SET_ADMIN: "SET_ADMIN",
+  // SET_ADMIN: "SET_ADMIN",
 };
 
 export const ACTIONS = {
@@ -31,32 +31,6 @@ export const ACTIONS = {
 };
 
 const defaultState = {
-  sampleBlogCards: [
-    {
-      id: "1",
-      title: "Blog Card #1",
-      photo: "src/assets/images/blogCards/stock-1.jpg",
-      date: "May 1, 2022",
-    },
-    {
-      id: "2",
-      title: "Blog Card #2",
-      photo: "src/assets/images/blogCards/stock-2.jpg",
-      date: "May 1, 2022",
-    },
-    {
-      id: "3",
-      title: "Blog Card #3",
-      photo: "src/assets/images/blogCards/stock-3.jpg",
-      date: "May 1, 2022",
-    },
-    {
-      id: "4",
-      title: "Blog Card #4",
-      photo: "src/assets/images/blogCards/stock-4.jpg",
-      date: "May 1, 2022",
-    },
-  ],
   blogPosts: [],
   postLoaded: null,
   editPostMode: false,
@@ -68,13 +42,13 @@ const defaultState = {
     photoFileURL: null,
     isOnPhotoReview: null,
   },
-  admin: null,
+  // admin: null,
   profile: {
     id: null,
     email: null,
     firstName: null,
     lastName: null,
-    userName: null,
+    username: null,
     initials: null,
   },
 };
@@ -102,82 +76,84 @@ export const store = createStore({
     [MUTATIONS.SET_PROFILE](state, payload) {
       state.profile = payload;
     },
-    [MUTATIONS.SET_ADMIN](state, payload) {
-      state.admin = payload;
-    },
+    // [MUTATIONS.SET_ADMIN](state, payload) {
+    //   state.admin = payload;
+    // },
   },
-  actions() {
-    return {
-      async [ACTIONS.GET_CURRENT_USER]({ commit }, user) {
-        const auth = getAuth(firebaseApp);
-        const docRef = doc(
-          collection(firestore, COLLECTIONS.USERS),
-          auth.currentUser.uid
-        );
+  actions: {
+    async [ACTIONS.GET_CURRENT_USER]({ commit }, user) {
+      const auth = getAuth(firebaseApp);
+      const docRef = doc(
+        collection(firestore, COLLECTIONS.USERS),
+        auth.currentUser.uid
+      );
 
-        const dbResults = getDoc(docRef);
+      const dbResults = await getDoc(docRef);
+
+      if (dbResults.exists()) {
         const profile = fromDocumentToProfile(dbResults);
         commit(MUTATIONS.SET_PROFILE, profile);
 
-        const token = await user.getIdTokenResult();
-        const admin = await token.claims.admin;
-        commit(MUTATIONS.SET_PROFILE, admin);
-      },
-      async [ACTIONS.GET_POSTS]({ state }) {
-        const blogPostsRef = collection(firestore, COLLECTIONS.BLOG_POSTS);
-        const q = query(blogPostsRef, orderBy("date", "desc"));
-        onSnapshot(q, (doc) => {
-          if (!state.blogPosts.some((post) => post.id === doc.id)) {
-            const data = {
-              id: doc.data().id,
-              html: doc.data().html,
-              coverPhoto: doc.data().coverPhoto,
-              title: doc.data().title,
-              date: doc.data().date,
-              coverPhotoName: doc.data().coverPhotoName,
-            };
-            state.blogPosts.push(data);
-          }
-        });
-        state.postLoaded = true;
-      },
-      async [ACTIONS.UPDATE_POST]({ commit, dispatch }, payload) {
-        commit(MUTATIONS.FILTER_BLOG_POST, payload);
-        await dispatch(ACTIONS.GET_POSTS);
-      },
-      async [ACTIONS.DELETE_POST]({ commit }, payload) {
-        const blogPostsRef = collection(firestore, COLLECTIONS.BLOG_POSTS);
-        const docRef = doc(blogPostsRef, payload);
-        await deleteDoc(docRef);
-        commit(MUTATIONS.FILTER_BLOG_POST, payload);
-      },
-      async [ACTIONS.UPDATE_USER_SETTINGS]({ state }) {
-        const userRef = collection(firestore, COLLECTIONS.USERS);
-        const docRef = doc(userRef, state.profile.id);
-        await updateDoc(docRef, {
-          firstName: state.profile.firstName,
-          lastName: state.profile.lastName,
-          username: state.profile.username,
-          initials: generateProfileInitials(
-            state.profile.firstName,
-            state.profile.lastName
-          ),
-        });
-      },
-    };
+        // const token = await user.getIdTokenResult();
+        // const admin = await token.claims.admin;
+        // commit(MUTATIONS.SET_ADMIN, admin);
+      }
+    },
+    async [ACTIONS.GET_POSTS]({ state }) {
+      const blogPostsRef = collection(firestore, COLLECTIONS.BLOG_POSTS);
+      const q = query(blogPostsRef, orderBy("date", "desc"));
+      onSnapshot(q, (doc) => {
+        if (!state.blogPosts.some((post) => post.id === doc.id)) {
+          const data = {
+            id: doc.data().id,
+            html: doc.data().html,
+            coverPhoto: doc.data().coverPhoto,
+            title: doc.data().title,
+            date: doc.data().date,
+            coverPhotoName: doc.data().coverPhotoName,
+          };
+          state.blogPosts.push(data);
+        }
+      });
+      state.postLoaded = true;
+    },
+    async [ACTIONS.UPDATE_POST]({ commit, dispatch }, payload) {
+      commit(MUTATIONS.FILTER_BLOG_POST, payload);
+      await dispatch(ACTIONS.GET_POSTS);
+    },
+    async [ACTIONS.DELETE_POST]({ commit }, payload) {
+      const blogPostsRef = collection(firestore, COLLECTIONS.BLOG_POSTS);
+      const docRef = doc(blogPostsRef, payload);
+      await deleteDoc(docRef);
+      commit(MUTATIONS.FILTER_BLOG_POST, payload);
+    },
+    async [ACTIONS.UPDATE_USER_SETTINGS]({ state }) {
+      const userRef = collection(firestore, COLLECTIONS.USERS);
+      const docRef = doc(userRef, state.profile.id);
+      await updateDoc(docRef, {
+        firstName: state.profile.firstName,
+        lastName: state.profile.lastName,
+        username: state.profile.username,
+        initials: generateProfileInitials(
+          state.profile.firstName,
+          state.profile.lastName
+        ),
+      });
+    },
   },
   modules() {},
 });
 
 const fromDocumentToProfile = (doc) => {
-  if (!document) return {};
+  if (!doc) return {};
 
+  const data = doc.data();
   const profile = {
-    id: document?.id,
-    email: doc.data().email,
-    firstName: doc.data().firstName,
-    lastName: doc.data().lastName,
-    userName: doc.data().username,
+    id: doc.id,
+    email: data.email,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    username: data.username,
   };
 
   profile.initials = generateProfileInitials(

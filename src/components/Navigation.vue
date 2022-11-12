@@ -2,8 +2,8 @@
   <header>
     <nav class="container">
       <div class="branding">
-        <router-link class="branding__header" to="{ name: ROUTE_NAMES.HOME }"
-          >GreenLogs</router-link
+        <router-link class="branding__header" :to="{ name: ROUTE_NAMES.HOME }"
+          >GREEN LOGS</router-link
         >
       </div>
       <div class="nav-links">
@@ -14,13 +14,69 @@
           <router-link class="link" :to="{ name: ROUTE_NAMES.BLOGS }"
             >Blogs</router-link
           >
-          <router-link class="link" :to="{ name: ROUTE_NAMES.CREATE_POST }"
+          <router-link
+            v-if="user"
+            class="link"
+            :to="{ name: ROUTE_NAMES.CREATE_POST }"
             >Create Blog</router-link
           >
-          <router-link class="link" :to="{ name: ROUTE_NAMES.LOGIN }"
+          <router-link
+            v-if="!user"
+            class="link"
+            :to="{ name: ROUTE_NAMES.LOGIN }"
             >Login/Register</router-link
           >
         </ul>
+        <div
+          v-if="user"
+          :class="{ 'mobile-user-menu': isOnMobile }"
+          class="profile"
+          ref="profile"
+          @click="toggleProfileMenu"
+        >
+          <span>{{ userProfile.initials }}</span>
+          <div v-show="profileMenu" class="profile-menu">
+            <div class="info">
+              <p class="initials">{{ userProfile.initials }}</p>
+              <div class="right">
+                <p>
+                  {{ userProfile.firstName }}
+                  {{ userProfile.lastName }}
+                </p>
+                <p>
+                  {{ userProfile.username }}
+                </p>
+                <p>
+                  {{ userProfile.email }}
+                </p>
+              </div>
+            </div>
+            <div class="options">
+              <div class="option">
+                <router-link
+                  class="option-link"
+                  :to="{ name: ROUTE_NAMES.PROFILE }"
+                >
+                  <UserIcon class="icon" />
+                  <p>Profile</p>
+                </router-link>
+              </div>
+              <!-- <div v-if="admin" class="option">
+                <router-link
+                  class="option-link"
+                  :to="{ name: ROUTE_NAMES.ADMIN }"
+                >
+                  <AdminIcon class="icon" />
+                  <p>Admin</p>
+                </router-link>
+              </div> -->
+              <div @click="signOut" class="option">
+                <SignOutIcon class="icon" />
+                <p>Sign Out</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </nav>
     <MenuIcon class="menu-icon" @click="toggleMobileNav" v-show="isOnMobile" />
@@ -32,10 +88,13 @@
         <router-link class="link" :to="{ name: ROUTE_NAMES.BLOGS }"
           >Blogs</router-link
         >
-        <router-link class="link" :to="{ name: ROUTE_NAMES.CREATE_POST }"
+        <router-link
+          v-if="user"
+          class="link"
+          :to="{ name: ROUTE_NAMES.CREATE_POST }"
           >Create Blog</router-link
         >
-        <router-link class="link" :to="{ name: ROUTE_NAMES.LOGIN }"
+        <router-link v-if="!user" class="link" :to="{ name: ROUTE_NAMES.LOGIN }"
           >Login/Register</router-link
         >
       </ul>
@@ -45,15 +104,24 @@
 
 <script>
 import MenuIcon from "@/assets/images/Icons/bars-regular.svg";
-import { ROUTE_NAMES } from "@/router";
+import UserIcon from "@/assets/images/Icons/user-alt-light.svg";
+// import AdminIcon from "@/assets/images/Icons/user-crown-light.svg";
+import SignOutIcon from "@/assets/images/Icons/sign-out-alt-regular.svg";
+import { ROUTE_NAMES } from "../router";
+import { getAuth, signOut } from "@firebase/auth";
+import { firebaseApp } from "../firebase";
 
 export default {
   name: "vue-navigation",
   components: {
     MenuIcon,
+    UserIcon,
+    // AdminIcon,
+    SignOutIcon,
   },
   data() {
     return {
+      profileMenu: null,
       isOnMobile: false,
       mobileNavOpening: false,
       windowWidth: 0,
@@ -63,6 +131,15 @@ export default {
     ROUTE_NAMES() {
       return ROUTE_NAMES;
     },
+    user() {
+      return this.$store.state.user;
+    },
+    userProfile() {
+      return this.$store.state.profile;
+    },
+    // admin() {
+    //   return this.$store.state.admin;
+    // },
   },
   methods: {
     checkScreen() {
@@ -72,6 +149,16 @@ export default {
     },
     toggleMobileNav() {
       this.mobileNavOpening = !this.mobileNavOpening;
+    },
+    toggleProfileMenu(e) {
+      if (e.target === this.$refs.profile) {
+        this.profileMenu = !this.profileMenu;
+      }
+    },
+    signOut() {
+      const auth = getAuth(firebaseApp);
+      signOut(auth);
+      window.location.reload();
     },
   },
   created() {
@@ -135,6 +222,86 @@ header {
           }
         }
       }
+
+      .profile {
+        position: relative;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        color: #fff;
+        background-color: #303030;
+        span {
+          pointer-events: none;
+        }
+        .profile-menu {
+          position: absolute;
+          top: 60px;
+          right: 0;
+          width: 250px;
+          background-color: #303030;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+            0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          .info {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #fff;
+            .initials {
+              position: initial;
+              width: 40px;
+              height: 40px;
+              background-color: #fff;
+              color: #303030;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: 50%;
+            }
+            .right {
+              flex: 1;
+              margin-left: 24px;
+              p:nth-child(1) {
+                font-size: 14px;
+              }
+              p:nth-child(2),
+              p:nth-child(3) {
+                font-size: 12px;
+              }
+            }
+          }
+          .options {
+            padding: 15px;
+
+            .option,
+            .option-link {
+              text-decoration: none;
+              color: #fff;
+              display: flex;
+              align-items: center;
+              margin-bottom: 12px;
+              .icon {
+                width: 18px;
+                height: auto;
+              }
+              p {
+                font-size: 14px;
+                margin-left: 12px;
+              }
+              &:last-child {
+                margin-bottom: 0px;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .mobile-user-menu {
+      margin-right: 40px;
     }
   }
 

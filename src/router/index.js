@@ -4,6 +4,8 @@ import Blogs from "../views/Blogs.vue";
 import Login from "../views/Login.vue";
 import Register from "../views/Register.vue";
 import ForgotPassword from "../views/ForgotPassword.vue";
+import Profile from "../views/Profile.vue";
+// import Admin from "../views/Admin.vue";
 
 export const ROUTE_NAMES = {
   HOME: "Home",
@@ -12,6 +14,8 @@ export const ROUTE_NAMES = {
   LOGIN: "Login",
   REGISTER: "Register",
   FORGOT_PASSWORD: "ForgotPassword",
+  PROFILE: "Profile",
+  // ADMIN: "Admin",
 };
 
 const router = createRouter({
@@ -65,6 +69,22 @@ const router = createRouter({
         title: "Forgot Password",
       },
     },
+    {
+      path: "/profile",
+      name: ROUTE_NAMES.PROFILE,
+      component: Profile,
+      meta: {
+        title: "Profile",
+      },
+    },
+    // {
+    //   path: "/admin",
+    //   name: ROUTE_NAMES.ADMIN,
+    //   component: Admin,
+    //   meta: {
+    //     title: "Admin",
+    //   },
+    // },
   ],
 });
 

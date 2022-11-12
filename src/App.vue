@@ -14,6 +14,7 @@ import FooterVue from "./components/Footer.vue";
 import { ROUTE_NAMES } from "./router";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { firebaseApp } from "@/firebase";
+import { ACTIONS, MUTATIONS } from "./stores";
 
 export default {
   name: "app",
@@ -42,14 +43,14 @@ export default {
   created() {
     const auth = getAuth(firebaseApp);
     onAuthStateChanged(auth, (user) => {
-      this.$store.commit("updateUser", user);
+      this.$store.commit(MUTATIONS.UPDATE_USER, user);
 
       if (user) {
-        this.$store.dispatch("getCurrentUser", user);
+        this.$store.dispatch(ACTIONS.GET_CURRENT_USER, user);
       }
 
       this.checkRoute();
-      this.$store.dispatch("getPost", user);
+      this.$store.dispatch(ACTIONS.GET_POSTS, user);
     });
   },
 };

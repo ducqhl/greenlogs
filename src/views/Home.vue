@@ -1,16 +1,19 @@
 <template>
   <div class="home">
-    <BlogPost :post="welcomeScreen" />
+    <BlogPost v-if="!user" :post="welcomeScreen" arrowLight="true" />
     <BlogPost
-      v-for="(post, index) in sampleBlogPost"
+      v-for="(post, index) in blogPostsFeed"
       :post="post"
       :key="index"
     />
-    <recent-blog-cards :sampleBlogCards="sampleBlogCards" />
-    <div class="updates">
+    <recent-blog-cards
+      class="recent-blog-cards"
+      :blogPostsCards="blogPostsCards"
+    />
+    <div v-if="!user" class="updates">
       <div class="container">
         <h2>never miss a post. Register for your free account today!</h2>
-        <router-link class="router-button" to="#"
+        <router-link class="router-button" :to="{ name: ROUTE_NAMES.LOGIN }"
           >Register for GreenLogs <Arrow class="arrow arrow-light" />
         </router-link>
       </div>
@@ -22,6 +25,7 @@
 import BlogPost from "../components/BlogPost.vue";
 import Arrow from "../assets/images/Icons/arrow-right-light.svg";
 import RecentBlogCards from "../components/RecentBlogCards.vue";
+import { ROUTE_NAMES } from "../router";
 
 export default {
   name: "HomeVue",
@@ -47,11 +51,63 @@ export default {
           photo: "src/assets/images/blogPhotos/beautiful-stories.jpg",
         },
       ],
+      sampleBlogCards: [
+        {
+          id: "1",
+          title: "Blog Card #1",
+          photo: "src/assets/images/blogCards/stock-1.jpg",
+          date: "May 1, 2022",
+        },
+        {
+          id: "2",
+          title: "Blog Card #2",
+          photo: "src/assets/images/blogCards/stock-2.jpg",
+          date: "May 1, 2022",
+        },
+        {
+          id: "3",
+          title: "Blog Card #3",
+          photo: "src/assets/images/blogCards/stock-3.jpg",
+          date: "May 1, 2022",
+        },
+        {
+          id: "4",
+          title: "Blog Card #4",
+          photo: "src/assets/images/blogCards/stock-4.jpg",
+          date: "May 1, 2022",
+        },
+      ],
     };
   },
   computed: {
-    sampleBlogCards() {
-      return this.$store.state.sampleBlogCards;
+    ROUTE_NAMES() {
+      return ROUTE_NAMES;
+    },
+    blogPostsFeed() {
+      // get first two blogs
+      if (this.$store.state.blogPosts?.length > 2) {
+        return this.$store.state.blogPosts.slice(0, 2);
+      } else if (this.$store.state.blogPosts?.length > 0) {
+        return this.$store.state.blogPosts;
+      }
+
+      return this.sampleBlogPost;
+    },
+    blogPostsCards() {
+      // get five blogs expect two first blogs
+      if (this.$store.state.blogPosts?.length > 6) {
+        return this.$store.state.blogPosts.slice(2, 6);
+      } else if (this.$store.state.blogPosts?.length > 2) {
+        return this.$store.state.blogPosts.slice(
+          2,
+          this.$store.state.blogPosts.length - 1
+        );
+      }
+
+      return this.sampleBlogCards;
+    },
+    user() {
+      return this.$store.state.user;
     },
   },
 };
@@ -59,11 +115,12 @@ export default {
 
 <style lang="scss" scoped>
 .home {
-  .blog-card-wrapper {
-    padding: 80px 16px;
+  .recent-blog-cards {
+    background: #f1f1f1;
+    padding: 40px 16px;
 
     @media (min-width: 500px) {
-      padding: 100px 16px;
+      padding: 80px 16px;
     }
   }
 

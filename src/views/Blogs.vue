@@ -14,7 +14,7 @@
 
 <script>
 import BlogCard from "../components/BlogCard.vue";
-import { MUTATION_TYPES } from "../stores";
+import { MUTATIONS } from "../stores";
 
 export default {
   name: "vue-blogs",
@@ -28,15 +28,15 @@ export default {
         return this.$store.state.editPostMode;
       },
       set(payload) {
-        return this.$store.commit(MUTATION_TYPES.TOGGLE_EDIT_POST, payload);
+        return this.$store.commit(MUTATIONS.TOGGLE_EDIT_POST, payload);
       },
     },
-    profileAdmin() {
-      return this.$store.state.profileAdmin;
-    },
+    // profileAdmin() {
+    //   return this.$store.state.profileAdmin;
+    // },
   },
   beforeUnmount() {
-    this.$store.commit(MUTATION_TYPES.TOGGLE_EDIT_POST, false);
+    this.$store.commit(MUTATIONS.TOGGLE_EDIT_POST, false);
   },
 };
 </script>

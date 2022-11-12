@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, serverTimestamp } from "firebase/firestore";
+import * as ENV from "../constants";
 
 export const COLLECTIONS = {
   USERS: "users",
@@ -7,12 +8,12 @@ export const COLLECTIONS = {
 };
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCYBPDOx3inrH9cepV96beoTVcJ4RY5Lus",
-  authDomain: "greenlogs-749f1.firebaseapp.com",
-  projectId: "greenlogs-749f1",
-  storageBucket: "greenlogs-749f1.appspot.com",
-  messagingSenderId: "350841341819",
-  appId: "1:350841341819:web:41755865761bc7791b5fde",
+  apiKey: ENV.API_KEY,
+  authDomain: ENV.AUTH_DOMAIN,
+  projectId: ENV.PROJECT_ID,
+  storageBucket: ENV.STORAGE_BUCKET,
+  messagingSenderId: ENV.MESSAGING_SENDER_ID,
+  appId: ENV.APP_ID,
 };
 
 export const firebaseApp = initializeApp(firebaseConfig);

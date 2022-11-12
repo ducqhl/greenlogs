@@ -5,7 +5,13 @@
         <h2>{{ post.title }}</h2>
         <p class="content-preview">{{ post.blogHtml }}</p>
         <router-link class="link link-light" to="#">
-          {{ post.buttonText || "View the Post" }}<Arrow class="arrow" />
+          {{ post.buttonText || "View the Post"
+          }}<Arrow
+            class="arrow"
+            :class="{
+              'arrow-light': arrowLight,
+            }"
+          />
         </router-link>
       </div>
     </div>
@@ -20,7 +26,7 @@ import Arrow from "../assets/images/Icons/arrow-right-light.svg";
 
 export default {
   name: "BlogPost",
-  props: ["post"],
+  props: ["post", "arrowLight"],
   components: {
     Arrow,
   },
