@@ -4,14 +4,9 @@
       <div>
         <h2>{{ post.title }}</h2>
         <p class="content-preview">{{ post.blogHtml }}</p>
-        <router-link class="link link-light" to="#">
-          {{ post.buttonText || "View the Post"
-          }}<Arrow
-            class="arrow"
-            :class="{
-              'arrow-light': arrowLight,
-            }"
-          />
+        <router-link class="link" :class="{ 'link-light': linkLight }" to="#">
+          {{ post.buttonText || "View the Post" }}
+          <Arrow class="arrow" :class="{ 'arrow-light': linkLight }" />
         </router-link>
       </div>
     </div>
@@ -26,9 +21,14 @@ import Arrow from "../assets/images/Icons/arrow-right-light.svg";
 
 export default {
   name: "BlogPost",
-  props: ["post", "arrowLight"],
+  props: ["post", "linkLight"],
   components: {
     Arrow,
+  },
+  computed: {
+    user() {
+      return this.$store.state.user;
+    },
   },
 };
 </script>
@@ -89,9 +89,8 @@ export default {
 
       .content-preview {
         font-size: 0.8rem;
-        max-height: 24px;
+        max-height: 100%;
         width: 250px;
-        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }

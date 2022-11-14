@@ -5,6 +5,9 @@ import * as ENV from "../constants";
 export const COLLECTIONS = {
   USERS: "users",
   BLOG_POSTS: "blogPosts",
+  DOCUMENTS: "documents",
+  DOCUMENTS_BLOG_POST_PHOTOS: "documents/blogPostPhotos",
+  DOCUMENTS_BLOG_COVER_PHOTOS: "documents/blogCoverPhotos",
 };
 
 const firebaseConfig = {

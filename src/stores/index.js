@@ -14,7 +14,7 @@ import {
 
 export const MUTATIONS = {
   SET_POST: "SET_POST",
-  OPEN_PHOTO_PREVIEW: "OPEN_PHOTO_PREVIEW",
+  TOGGLE_PHOTO_PREVIEW: "OPEN_PHOTO_PREVIEW",
   TOGGLE_EDIT_POST: "TOGGLE_EDIT_POST",
   FILTER_BLOG_POST: "FILTER_BLOG_POST",
   UPDATE_USER: "UPDATE_USER",
@@ -61,8 +61,8 @@ export const store = createStore({
     [MUTATIONS.SET_POST](state, payload) {
       state.blog = payload;
     },
-    [MUTATIONS.OPEN_PHOTO_PREVIEW](state) {
-      state.blog.isOnPhotoReview = true;
+    [MUTATIONS.TOGGLE_PHOTO_PREVIEW](state) {
+      state.blog.isOnPhotoReview = !state.blog.isOnPhotoReview;
     },
     [MUTATIONS.TOGGLE_EDIT_POST](state, payload) {
       state.editPostMode = payload;
@@ -107,10 +107,10 @@ export const store = createStore({
           const data = {
             id: doc.data().id,
             html: doc.data().html,
-            coverPhoto: doc.data().coverPhoto,
+            photoFileURL: doc.data().photoFileURL,
             title: doc.data().title,
             date: doc.data().date,
-            coverPhotoName: doc.data().coverPhotoName,
+            photoName: doc.data().photoName,
           };
           state.blogPosts.push(data);
         }

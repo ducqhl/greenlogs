@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <BlogPost v-if="!user" :post="welcomeScreen" arrowLight="true" />
+    <BlogPost v-if="!user" :post="welcomeScreen" linkLight="true" />
     <BlogPost
       v-for="(post, index) in blogPostsFeed"
       :post="post"
@@ -42,12 +42,14 @@ export default {
       sampleBlogPost: [
         {
           title: "Sample 1",
-          blogHtml: "Weekly blog articles with all things programming i",
+          blogHtml:
+            "Weekly blog articles with all things programming including HTML, CSS, JavaScript and more. Register today to never miss a post!",
           photo: "src/assets/images/blogPhotos/designed-for-everyone.jpg",
         },
         {
           title: "Sample 2",
-          blogHtml: "Weekly blog articles with all things programming i",
+          blogHtml:
+            "Weekly blog articles with all things programming including HTML, CSS, JavaScript and more. Register today to never miss a post!",
           photo: "src/assets/images/blogPhotos/beautiful-stories.jpg",
         },
       ],
