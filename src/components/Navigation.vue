@@ -103,10 +103,10 @@
 </template>
 
 <script>
-import MenuIcon from "@/assets/images/Icons/bars-regular.svg";
-import UserIcon from "@/assets/images/Icons/user-alt-light.svg";
+import MenuIcon from "@/assets/images/icons/bars-regular.svg";
+import UserIcon from "@/assets/images/icons/user-alt-light.svg";
 // import AdminIcon from "@/assets/images/Icons/user-crown-light.svg";
-import SignOutIcon from "@/assets/images/Icons/sign-out-alt-regular.svg";
+import SignOutIcon from "@/assets/images/icons/sign-out-alt-regular.svg";
 import { ROUTE_NAMES } from "../router";
 import { getAuth, signOut } from "@firebase/auth";
 import { firebaseApp } from "../firebase";

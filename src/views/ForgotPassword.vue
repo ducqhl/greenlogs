@@ -32,7 +32,7 @@
 
 <script>
 import { ROUTE_NAMES } from "@/router";
-import Email from "@/assets/images/Icons/envelope-regular.svg";
+import Email from "@/assets/images/icons/envelope-regular.svg";
 import Modal from "@/components/Modal.vue";
 import AuthWrapper from "@/views/layouts/AuthWrapper.vue";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";

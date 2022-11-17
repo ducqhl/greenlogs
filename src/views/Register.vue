@@ -38,9 +38,9 @@
 
 <script>
 import { ROUTE_NAMES } from "@/router";
-import Email from "@/assets/images/Icons/envelope-regular.svg";
-import Password from "@/assets/images/Icons/lock-alt-solid.svg";
-import User from "@/assets/images/Icons/user-alt-light.svg";
+import Email from "@/assets/images/icons/envelope-regular.svg";
+import Password from "@/assets/images/icons/lock-alt-solid.svg";
+import User from "@/assets/images/icons/user-alt-light.svg";
 import AuthWrapper from "@/views/layouts/AuthWrapper.vue";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import firestore, { firebaseApp } from "@/firebase";
