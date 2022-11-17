@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import Arrow from "../assets/images/Icons/arrow-right-light.svg";
+import Arrow from "../assets/images/icons/arrow-right-light.svg";
 import { ROUTE_NAMES } from "../router";
 
 export default {

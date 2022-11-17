@@ -49,10 +49,10 @@
 </template>
 
 <script>
-import youTube from "@/assets/images/Icons/youtube-brands.svg";
-import twitter from "@/assets/images/Icons/twitter-brands.svg";
-import instagram from "@/assets/images/Icons/instagram-brands.svg";
-import linkedin from "@/assets/images/Icons/linkedin-brands.svg";
+import youTube from "@/assets/images/icons/youtube-brands.svg";
+import twitter from "@/assets/images/icons/twitter-brands.svg";
+import instagram from "@/assets/images/icons/instagram-brands.svg";
+import linkedin from "@/assets/images/icons/linkedin-brands.svg";
 import { ROUTE_NAMES } from "@/router";
 
 export default {
