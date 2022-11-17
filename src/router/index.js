@@ -32,7 +32,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   base: import.meta.env.BASE_URL,
   scrollBehavior() {
-    return { x: 0, y: 0 };
+    return { top: 0 };
   },
   routes: [
     {
