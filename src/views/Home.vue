@@ -23,7 +23,7 @@
 
 <script>
 import BlogPost from "../components/BlogPost.vue";
-import Arrow from "../assets/images/Icons/arrow-right-light.svg";
+import Arrow from "../assets/images/icons/arrow-right-light.svg";
 import RecentBlogCards from "../components/RecentBlogCards.vue";
 import { ROUTE_NAMES } from "../router";
 
