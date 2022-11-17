@@ -82,7 +82,6 @@ export default {
       module: ImageUploader,
       options: {
         upload: (file) => {
-          debugger;
           return new Promise(async (resolve, reject) => {
             const formData = new FormData();
             formData.append("image", file);

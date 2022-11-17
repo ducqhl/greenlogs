@@ -37,47 +37,7 @@ export default {
         title: "Welcome!",
         html: "Weekly blog articles with all things programming including HTML, CSS, JavaScript and more. Register today to never miss a post!",
         buttonText: "Login/Register",
-        photoFileURL: "src/assets/images/blogPhotos/coding.jpg",
       },
-      sampleBlogPost: [
-        {
-          title: "Sample 1",
-          html: "Weekly blog articles with all things programming including HTML, CSS, JavaScript and more. Register today to never miss a post!",
-          photoFileURL:
-            "src/assets/images/blogPhotos/designed-for-everyone.jpg",
-        },
-        {
-          title: "Sample 2",
-          html: "Weekly blog articles with all things programming including HTML, CSS, JavaScript and more. Register today to never miss a post!",
-          photoFileURL: "src/assets/images/blogPhotos/beautiful-stories.jpg",
-        },
-      ],
-      sampleBlogCards: [
-        {
-          id: "1",
-          title: "Blog Card #1",
-          photoFileURL: "src/assets/images/blogCards/stock-1.jpg",
-          date: "May 1, 2022",
-        },
-        {
-          id: "2",
-          title: "Blog Card #2",
-          photoFileURL: "src/assets/images/blogCards/stock-2.jpg",
-          date: "May 1, 2022",
-        },
-        {
-          id: "3",
-          title: "Blog Card #3",
-          photoFileURL: "src/assets/images/blogCards/stock-3.jpg",
-          date: "May 1, 2022",
-        },
-        {
-          id: "4",
-          title: "Blog Card #4",
-          photoFileURL: "src/assets/images/blogCards/stock-4.jpg",
-          date: "May 1, 2022",
-        },
-      ],
     };
   },
   computed: {
@@ -85,7 +45,6 @@ export default {
       return ROUTE_NAMES;
     },
     blogPostsFeed() {
-      debugger;
       // get first two blogs
       if (this.$store.state.blogPosts?.length > 2) {
         console.log(this.$store.state.blogPosts.slice(0, 2));

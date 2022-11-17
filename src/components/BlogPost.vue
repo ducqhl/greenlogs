@@ -20,7 +20,8 @@
       </div>
     </div>
     <div class="blog-photo">
-      <img :src="post.photoFileURL" :alt="post.title" />
+      <img :src="post.photoFileURL" :alt="post.title" v-if="!isWelcomePost" />
+      <img src="../assets/images/blogPhotos/coding.jpg" v-if="isWelcomePost" />
     </div>
   </div>
 </template>
