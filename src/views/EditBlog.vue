@@ -1,6 +1,6 @@
 <template>
   <div class="create-post">
-    <BlogCoverPreview v-show="this.$store.state.blogPhotoPreview" />
+    <BlogCoverPreview v-show="isOnPhotoReview" />
     <Loading v-show="loading" />
     <div class="container">
       <div :class="{ invisible: !error }" class="err-message">
@@ -20,11 +20,11 @@
           <button
             @click="openPreview"
             class="preview"
-            :class="{ 'button-inactive': !this.$store.state.blogPhotoFileURL }"
+            :class="{ 'button-inactive': !this.$store.state.blog.photoFileURL }"
           >
             Preview Photo
           </button>
-          <span>File Chosen: {{ this.$store.state.blogPhotoName }}</span>
+          <span>File Chosen: {{ this.blogPhotoName }}</span>
         </div>
       </div>
       <div class="editor">
@@ -46,17 +46,18 @@
 </template>
 
 <script>
-import BlogCoverPreview from "../components/BlogCoverPreview";
-import Loading from "../components/Loading";
-import firebase from "firebase/app";
-import "firebase/storage";
-import db from "../firebase/firebaseInit";
+import BlogCoverPreview from "../components/BlogCoverPreview.vue";
+import Loading from "../components/Loading.vue";
+
 import Quill from "quill";
+import { ACTIONS, MUTATIONS } from "../stores";
+import { doc, updateDoc } from "@firebase/firestore";
 window.Quill = Quill;
-const ImageResize = require("quill-image-resize-module").default;
-Quill.register("modules/imageResize", ImageResize);
+// const ImageResize = require("quill-image-resize-module").default;
+// Quill.register("modules/imageResize", ImageResize);
+
 export default {
-  name: "CreatePost",
+  name: "EditPost",
   data() {
     return {
       file: null,
@@ -77,122 +78,131 @@ export default {
     Loading,
   },
   async mounted() {
-    this.routeID = this.$route.params.blogid;
-    this.currentBlog = await this.$store.state.blogPosts.filter((post) => {
-      return post.blogID === this.routeID;
-    });
-    this.$store.commit("setBlogState", this.currentBlog[0]);
+    this.routeID = this.$route.params.blog_id;
+    this.currentBlog = await this.$store.state.blogPosts.find(
+      (post) => post.id === this.routeID
+    );
+    this.$store.commit(MUTATIONS.SET_POST, this.currentBlog);
   },
   methods: {
     fileChange() {
       this.file = this.$refs.blogPhoto.files[0];
-      const fileName = this.file.name;
-      this.$store.commit("fileNameChange", fileName);
-      this.$store.commit("createFileURL", URL.createObjectURL(this.file));
+      const photoName = this.file.name;
+      const photoFileURL = URL.createObjectURL(this.file);
+
+      this.$store.commit(MUTATIONS.SET_POST, {
+        ...this.$store.state.blog,
+        photoName,
+        photoFileURL,
+      });
     },
 
     openPreview() {
-      this.$store.commit("openPhotoPreview");
+      this.$store.commit(MUTATIONS.TOGGLE_PHOTO_PREVIEW);
     },
 
-    imageHandler(file, Editor, cursorLocation, resetUploader) {
-      const storageRef = firebase.storage().ref();
-      const docRef = storageRef.child(`documents/blogPostPhotos/${file.name}`);
-      docRef.put(file).on(
-        "state_changed",
-        (snapshot) => {
-          console.log(snapshot);
-        },
-        (err) => {
-          console.log(err);
-        },
-        async () => {
-          const downloadURL = await docRef.getDownloadURL();
-          Editor.insertEmbed(cursorLocation, "image", downloadURL);
-          resetUploader();
-        }
+    async imageHandler(file, Editor, cursorLocation, resetUploader) {
+      const storageRef = ref(
+        firebase,
+        `${COLLECTIONS.DOCUMENTS_BLOG_POST_PHOTOS}/${file.name}`
       );
+
+      try {
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+        Editor.insertEmbed(cursorLocation, "image", downloadURL);
+        resetUploader();
+      } catch (error) {
+        console.error(err);
+      }
     },
 
     async updateBlog() {
-      const dataBase = await db.collection("blogPosts").doc(this.routeID);
-      if (this.blogTitle.length !== 0 && this.blogHTML.length !== 0) {
-        if (this.file) {
-          this.loading = true;
-          const storageRef = firebase.storage().ref();
-          const docRef = storageRef.child(
-            `documents/BlogCoverPhotos/${this.$store.state.blogPhotoName}`
-          );
-          docRef.put(this.file).on(
-            "state_changed",
-            (snapshot) => {
-              console.log(snapshot);
-            },
-            (err) => {
-              console.log(err);
-              this.loading = false;
-            },
-            async () => {
-              const downloadURL = await docRef.getDownloadURL();
-
-              await dataBase.update({
-                blogHTML: this.blogHTML,
-                blogCoverPhoto: downloadURL,
-                blogCoverPhotoName: this.blogCoverPhotoName,
-                blogTitle: this.blogTitle,
-              });
-              await this.$store.dispatch("updatePost", this.routeID);
-              this.loading = false;
-              this.$router.push({
-                name: "ViewBlog",
-                params: { blogid: dataBase.id },
-              });
-            }
-          );
-          return;
-        }
-        this.loading = true;
-        await dataBase.update({
-          blogHTML: this.blogHTML,
-          blogTitle: this.blogTitle,
-        });
-        await this.$store.dispatch("updatePost", this.routeID);
-        this.loading = false;
-        this.$router.push({
-          name: "ViewBlog",
-          params: { blogid: dataBase.id },
-        });
+      if (!this.blogTitle.length || !this.blogHTML.length) {
+        this.error = true;
+        this.errorMsg = "Please ensure Blog Title & Blog Post has been filled!";
+        setTimeout(() => (this.error = false), 5000);
         return;
       }
-      this.error = true;
-      this.errorMsg = "Please ensure Blog Title & Blog Post has been filled!";
-      setTimeout(() => {
-        this.error = false;
-      }, 5000);
-      return;
+
+      this.loading = true;
+      let toUpdatePhoto = {};
+
+      if (this.file) {
+        try {
+          const storageRef = ref(
+            firebase,
+            `${COLLECTIONS.DOCUMENTS_BLOG_COVER_PHOTOS}/${this.blogPhotoName}`
+          );
+          const snapshot = await uploadBytes(storageRef, this.file);
+          console.debug(snapshot);
+
+          const downloadURL = await getDownloadURL(storageRef);
+
+          toUpdatePhoto = {
+            photoName: this.blogPhotoName,
+            photoFileURL: downloadURL,
+          };
+        } catch {
+          console.log(err);
+        }
+      }
+
+      try {
+        const docRef = doc(
+          collection(firebase, COLLECTIONS.BLOG_POSTS),
+          this.$store.state.blog.id
+        );
+
+        updateDoc(docRef, {
+          ...toUpdatePhoto,
+          html: this.blogHTML,
+          blogTitle: this.blogTitle,
+        });
+
+        await this.$store.dispatch(ACTIONS.UPDATE_POST, docRef.id);
+
+        this.$router.push({
+          name: "ViewBlog",
+          params: { blog_id: docRef.id },
+        });
+      } catch {
+        console.log(err);
+      } finally {
+        this.loading = false;
+      }
     },
   },
   computed: {
+    isOnPhotoReview() {
+      return this.$store.state.isOnPhotoReview;
+    },
     profileId() {
       return this.$store.state.profileId;
     },
-    blogCoverPhotoName() {
-      return this.$store.state.blogPhotoName;
+    blogPhotoName() {
+      return this.$store.state.blog.photoName;
     },
     blogTitle: {
       get() {
-        return this.$store.state.blogTitle;
+        return this.$store.state.blog.title;
       },
       set(payload) {
-        this.$store.commit("updateBlogTitle", payload);
+        this.$store.commit(ACTIONS.UPDATE_POST, {
+          ...this.$store.state.blog,
+          title: payload,
+        });
       },
     },
     blogHTML: {
       get() {
-        return this.$store.state.blogHTML;
+        return this.$store.state.blog.html;
       },
       set(payload) {
-        this.$store.commit("newBlogPost", payload);
+        this.$store.commit(ACTIONS.UPDATE_POST, {
+          ...this.$store.state.blog,
+          html: payload,
+        });
       },
     },
   },

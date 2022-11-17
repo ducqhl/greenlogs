@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, serverTimestamp } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import * as ENV from "../constants";
 
 export const COLLECTIONS = {
@@ -21,5 +22,6 @@ const firebaseConfig = {
 
 export const firebaseApp = initializeApp(firebaseConfig);
 export const timestamp = serverTimestamp();
+export const storage = getStorage(firebaseApp);
 
 export default getFirestore(firebaseApp);

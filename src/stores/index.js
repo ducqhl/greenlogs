@@ -10,6 +10,7 @@ import {
   onSnapshot,
   deleteDoc,
   updateDoc,
+  getDocs,
 } from "firebase/firestore";
 
 export const MUTATIONS = {
@@ -37,7 +38,7 @@ const defaultState = {
   user: null,
   blog: {
     title: "",
-    html: "Write your blog title here...",
+    html: "",
     photoName: "",
     photoFileURL: null,
     isOnPhotoReview: null,
@@ -102,10 +103,11 @@ export const store = createStore({
     async [ACTIONS.GET_POSTS]({ state }) {
       const blogPostsRef = collection(firestore, COLLECTIONS.BLOG_POSTS);
       const q = query(blogPostsRef, orderBy("date", "desc"));
-      onSnapshot(q, (doc) => {
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
         if (!state.blogPosts.some((post) => post.id === doc.id)) {
           const data = {
-            id: doc.data().id,
+            id: doc.id,
             html: doc.data().html,
             photoFileURL: doc.data().photoFileURL,
             title: doc.data().title,

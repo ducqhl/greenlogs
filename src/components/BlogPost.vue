@@ -3,21 +3,29 @@
     <div class="blog-content">
       <div>
         <h2>{{ post.title }}</h2>
-        <p class="content-preview">{{ post.blogHtml }}</p>
-        <router-link class="link" :class="{ 'link-light': linkLight }" to="#">
+        <p class="content-preview" v-html="post.html" />
+        <router-link
+          class="link"
+          :class="{ 'link-light': linkLight }"
+          :to="{
+            name: ROUTE_NAMES.VIEW_BLOG,
+            params: { blog_id: this.post.id },
+          }"
+        >
           {{ post.buttonText || "View the Post" }}
           <Arrow class="arrow" :class="{ 'arrow-light': linkLight }" />
         </router-link>
       </div>
     </div>
     <div class="blog-photo">
-      <img :src="post.photo" alt="post.title" />
+      <img :src="post.photoFileURL" :alt="post.title" />
     </div>
   </div>
 </template>
 
 <script>
 import Arrow from "../assets/images/Icons/arrow-right-light.svg";
+import { ROUTE_NAMES } from "../router";
 
 export default {
   name: "BlogPost",
@@ -28,6 +36,9 @@ export default {
   computed: {
     user() {
       return this.$store.state.user;
+    },
+    ROUTE_NAMES() {
+      return ROUTE_NAMES;
     },
   },
 };
@@ -89,7 +100,7 @@ export default {
 
       .content-preview {
         font-size: 0.8rem;
-        max-height: 100%;
+        max-height: 10rem;
         width: 250px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -136,9 +147,10 @@ export default {
   &:first-child {
     .blog-content {
       .content-preview {
-        max-height: 100%;
+        max-height: 9.5rem;
         white-space: normal;
-        overflow: visible;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
 

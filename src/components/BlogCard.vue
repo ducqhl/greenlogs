@@ -24,6 +24,8 @@
 import Arrow from "../assets/images/icons/arrow-right-light.svg";
 import Edit from "../assets/images/icons/edit-regular.svg";
 import Delete from "../assets/images/icons/trash-regular.svg";
+import { ROUTE_NAMES } from "../router";
+import { ACTIONS } from "../stores";
 
 export default {
   name: "blogCard",
@@ -40,12 +42,12 @@ export default {
   },
   methods: {
     deleteBlog() {
-      this.$store.dispatch("deleteBlog", this.post.blogId);
+      this.$store.dispatch(ACTIONS.DELETE_POST, this.post.id);
     },
     editBlog() {
       this.$router.push({
-        name: "EditBlog",
-        params: { blogId: this.post.blogId },
+        name: ROUTE_NAMES.EDIT_BLOG,
+        params: { blog_id: this.post.id },
       });
     },
   },

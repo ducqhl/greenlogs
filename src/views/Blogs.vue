@@ -6,7 +6,7 @@
         <input type="checkbox" v-model="editPostMode" />
       </div>
       <div class="blog-cards">
-        <BlogCard v-for="post in sampleBlogCards" :key="post.id" :post="post" />
+        <BlogCard v-for="post in blogPosts" :key="post.id" :post="post" />
       </div>
     </div>
   </div>
@@ -20,8 +20,8 @@ export default {
   name: "vue-blogs",
   components: { BlogCard },
   computed: {
-    sampleBlogCards() {
-      return this.$store.state.sampleBlogCards;
+    blogPosts() {
+      return this.$store.state.blogPosts;
     },
     editPostMode: {
       get() {

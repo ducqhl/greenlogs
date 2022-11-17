@@ -1,10 +1,10 @@
 <template>
   <div class="create-post">
-    <BlogCoverPreview v-show="blog.photoPreview" />
+    <BlogCoverPreview v-show="blog.isOnPhotoReview" />
     <Loading v-show="loading" />
     <div class="container">
       <div :class="{ invisible: !error }" class="err-message">
-        <p><span>Error:</span>{{ this.errorMsg }}</p>
+        {{ this.errorMsg }}
       </div>
       <div class="blog-info">
         <input type="text" placeholder="Enter Blog Title" v-model="blogTitle" />
@@ -28,16 +28,20 @@
         </div>
       </div>
       <div class="editor">
-        <vue-editor
-          :editorOptions="editorSettings"
-          v-model="blogHTML"
-          useCustomImageHandler
-          @image-added="imageHandler"
+        <QuillEditor
+          theme="snow"
+          v-model:content="blogHTML"
+          contentType="html"
+          :modules="modules"
+          toolbar="full"
+          placeholder="Edit blog content here"
         />
       </div>
       <div class="blog-actions">
         <button @click="uploadBlog">Publish Blog</button>
-        <router-link class="router-button" :to="{ name: 'BlogPreview' }"
+        <router-link
+          class="router-button"
+          :to="{ name: ROUTE_NAMES.BLOG_PREVIEW }"
           >Post Preview</router-link
         >
       </div>
@@ -46,17 +50,16 @@
 </template>
 
 <script>
-import { ref, getDownloadURL } from "firebase/storage";
-import Quill from "quill";
-import BlogCoverPreview from "../components/BlogCoverPreview";
-import Loading from "../components/Loading";
-import { ACTIONS, MUTATIONS } from "../stores";
-import firebase, { COLLECTIONS } from "../firebase";
+import { getDownloadURL, uploadBytes, ref } from "firebase/storage";
 import { collection, doc, setDoc } from "@firebase/firestore";
+import BlogCoverPreview from "../components/BlogCoverPreview.vue";
+import Loading from "../components/Loading.vue";
+import { ACTIONS, MUTATIONS } from "../stores";
+import firebase, { COLLECTIONS, storage } from "../firebase";
+import { ROUTE_NAMES } from "../router";
 
-window.Quill = Quill;
-const ImageResize = require("quill-image-resize-module").default;
-Quill.register("modules/imageResize", ImageResize);
+import { QuillEditor } from "@vueup/vue-quill";
+import ImageUploader from "quill-image-uploader";
 
 export default {
   name: "CreatePost",
@@ -66,16 +69,43 @@ export default {
       error: null,
       errorMsg: null,
       loading: null,
-      editorSettings: {
-        modules: {
-          imageResize: {},
-        },
-      },
     };
   },
   components: {
     BlogCoverPreview,
     Loading,
+    QuillEditor,
+  },
+  setup: () => {
+    const modules = {
+      name: "imageUploader",
+      module: ImageUploader,
+      options: {
+        upload: (file) => {
+          debugger;
+          return new Promise(async (resolve, reject) => {
+            const formData = new FormData();
+            formData.append("image", file);
+
+            try {
+              const storageRef = ref(
+                storage,
+                `${COLLECTIONS.DOCUMENTS_BLOG_POST_PHOTOS}/${file.name}`
+              );
+
+              await uploadBytes(storageRef, file);
+              const downloadURL = await getDownloadURL(storageRef);
+              resolve(downloadURL);
+            } catch (error) {
+              console.error(error);
+              reject(error);
+            }
+          });
+        },
+      },
+    };
+
+    return { modules };
   },
   methods: {
     fileChange() {
@@ -89,58 +119,40 @@ export default {
         photoFileURL,
       });
     },
-
+    showError(message) {
+      this.error = true;
+      this.errorMsg = message;
+      setTimeout(() => (this.error = false), 5000);
+    },
     openPreview() {
       this.$store.commit(MUTATIONS.TOGGLE_PHOTO_PREVIEW);
     },
 
-    async imageHandler(file, Editor, cursorLocation, resetUploader) {
-      const storageRef = ref(
-        firebase,
-        `${COLLECTIONS.DOCUMENTS_BLOG_POST_PHOTOS}/${file.name}`
-      );
-
-      try {
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-        Editor.insertEmbed(cursorLocation, "image", downloadURL);
-        resetUploader();
-      } catch (error) {
-        console.error(err);
-      }
-    },
-
     async uploadBlog() {
-      if (!this.blogTitle.length || !this.blogHTML.length) {
-        this.error = true;
-        this.errorMsg = "Please ensure Blog Title & Blog Post has been filled!";
-        setTimeout(() => (this.error = false), 5000);
+      if (!this.blogTitle?.length || !this.blogHTML?.length) {
+        this.showError("Please ensure Blog Title & Blog Post has been filled!");
         return;
       }
 
       if (!this.file) {
-        this.error = true;
-        this.errorMsg = "Please ensure Cover Photo has been uploaded!";
-        setTimeout(() => (this.error = false), 5000);
+        return this.showError("Please ensure Cover Photo has been uploaded!");
         return;
       }
 
       this.loading = true;
 
       const storageRef = ref(
-        firebase,
-        `${COLLECTIONS.DOCUMENTS_BLOG_COVER_PHOTOS}/${this.$store.state.blogPhotoName}`
+        storage,
+        `${COLLECTIONS.DOCUMENTS_BLOG_COVER_PHOTOS}/${this.$store.state.blog.photoName}`
       );
 
       try {
-        const snapshot = await uploadBytes(storageRef, this.file);
-        console.debug(snapshot);
-
+        await uploadBytes(storageRef, this.file);
         const downloadURL = await getDownloadURL(storageRef);
-        const timestamp = await Date.now();
+        const timestamp = Date.now();
         const docRef = doc(collection(firebase, COLLECTIONS.BLOG_POSTS));
 
-        setDoc(docRef, {
+        await setDoc(docRef, {
           id: docRef.id,
           html: this.blogHTML,
           photoFileURL: downloadURL,
@@ -153,19 +165,22 @@ export default {
         await this.$store.dispatch(ACTIONS.GET_POSTS);
 
         this.$router.push({
-          name: "ViewBlog",
-          params: { blogid: dataBase.id },
+          name: ROUTE_NAMES.VIEW_BLOG,
+          params: { blog_id: docRef.id },
         });
-      } catch {
-        console.log(err);
+      } catch (error) {
+        this.showError(error?.message ?? error);
       } finally {
         this.loading = false;
       }
     },
   },
   computed: {
+    ROUTE_NAMES() {
+      return ROUTE_NAMES;
+    },
     profileId() {
-      return this.$store.state.profileId;
+      return this.$store.state.profile.id;
     },
     blogPhotoName() {
       return this.$store.state.blog.photoName;
