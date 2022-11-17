@@ -1,10 +1,10 @@
 <template>
-  <div class="create-post">
-    <BlogCoverPreview v-show="isOnPhotoReview" />
+  <div class="edit-post">
+    <BlogCoverPreview v-show="blog.isOnPhotoReview" />
     <Loading v-show="loading" />
     <div class="container">
       <div :class="{ invisible: !error }" class="err-message">
-        <p><span>Error:</span>{{ this.errorMsg }}</p>
+        {{ this.errorMsg }}
       </div>
       <div class="blog-info">
         <input type="text" placeholder="Enter Blog Title" v-model="blogTitle" />
@@ -20,25 +20,28 @@
           <button
             @click="openPreview"
             class="preview"
-            :class="{ 'button-inactive': !this.$store.state.blog.photoFileURL }"
+            :class="{ 'button-inactive': !blog.photoFileURL }"
           >
             Preview Photo
           </button>
-          <span>File Chosen: {{ this.blogPhotoName }}</span>
+          <span>File Chosen: {{ blog.photoName }}</span>
         </div>
       </div>
       <div class="editor">
-        <vue-editor
-          :editorOptions="editorSettings"
-          v-model="blogHTML"
-          useCustomImageHandler
-          @image-added="imageHandler"
+        <QuillEditor
+          theme="snow"
+          v-model:content="blogHTML"
+          contentType="html"
+          :modules="modules"
+          toolbar="full"
         />
       </div>
       <div class="blog-actions">
-        <button @click="updateBlog">Save Changes</button>
-        <router-link class="router-button" :to="{ name: 'BlogPreview' }"
-          >Preview Changes</router-link
+        <button @click="uploadBlog">Publish Blog</button>
+        <router-link
+          class="router-button"
+          :to="{ name: ROUTE_NAMES.BLOG_PREVIEW }"
+          >Post Preview</router-link
         >
       </div>
     </div>
@@ -46,15 +49,16 @@
 </template>
 
 <script>
+import { getDownloadURL, uploadBytes, ref } from "firebase/storage";
+import { collection, doc, setDoc, updateDoc } from "@firebase/firestore";
 import BlogCoverPreview from "../components/BlogCoverPreview.vue";
 import Loading from "../components/Loading.vue";
-
-import Quill from "quill";
 import { ACTIONS, MUTATIONS } from "../stores";
-import { doc, updateDoc } from "@firebase/firestore";
-window.Quill = Quill;
-// const ImageResize = require("quill-image-resize-module").default;
-// Quill.register("modules/imageResize", ImageResize);
+import firebase, { COLLECTIONS, storage } from "../firebase";
+import { ROUTE_NAMES } from "../router";
+import logger from "../logger";
+import { QuillEditor } from "@vueup/vue-quill";
+import ImageUploader from "quill-image-uploader";
 
 export default {
   name: "EditPost",
@@ -66,16 +70,42 @@ export default {
       loading: null,
       routeID: null,
       currentBlog: null,
-      editorSettings: {
-        modules: {
-          imageResize: {},
-        },
-      },
     };
   },
   components: {
     BlogCoverPreview,
     Loading,
+    QuillEditor,
+  },
+  setup: () => {
+    const modules = {
+      name: "imageUploader",
+      module: ImageUploader,
+      options: {
+        upload: (file) => {
+          return new Promise(async (resolve, reject) => {
+            const formData = new FormData();
+            formData.append("image", file);
+
+            try {
+              const storageRef = ref(
+                storage,
+                `${COLLECTIONS.DOCUMENTS_BLOG_POST_PHOTOS}/${file.name}`
+              );
+
+              await uploadBytes(storageRef, file);
+              const downloadURL = await getDownloadURL(storageRef);
+              resolve(downloadURL);
+            } catch (error) {
+              logger.error(error);
+              reject(error);
+            }
+          });
+        },
+      },
+    };
+
+    return { modules };
   },
   async mounted() {
     this.routeID = this.$route.params.blog_id;
@@ -87,7 +117,7 @@ export default {
   methods: {
     fileChange() {
       this.file = this.$refs.blogPhoto.files[0];
-      const photoName = this.file.name;
+      const photoName = this.blog.id + "-cover-image";
       const photoFileURL = URL.createObjectURL(this.file);
 
       this.$store.commit(MUTATIONS.SET_POST, {
@@ -96,99 +126,82 @@ export default {
         photoFileURL,
       });
     },
-
+    showError(message) {
+      this.error = true;
+      this.errorMsg = message;
+      setTimeout(() => (this.error = false), 5000);
+    },
     openPreview() {
       this.$store.commit(MUTATIONS.TOGGLE_PHOTO_PREVIEW);
     },
-
-    async imageHandler(file, Editor, cursorLocation, resetUploader) {
-      const storageRef = ref(
-        firebase,
-        `${COLLECTIONS.DOCUMENTS_BLOG_POST_PHOTOS}/${file.name}`
-      );
-
-      try {
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-        Editor.insertEmbed(cursorLocation, "image", downloadURL);
-        resetUploader();
-      } catch (error) {
-        console.error(err);
-      }
-    },
-
-    async updateBlog() {
-      if (!this.blogTitle.length || !this.blogHTML.length) {
-        this.error = true;
-        this.errorMsg = "Please ensure Blog Title & Blog Post has been filled!";
-        setTimeout(() => (this.error = false), 5000);
+    async uploadBlog() {
+      if (!this.blogTitle?.length || !this.blogHTML?.length) {
+        this.showError("Please ensure Blog Title & Blog Post has been filled!");
         return;
       }
 
       this.loading = true;
-      let toUpdatePhoto = {};
-
-      if (this.file) {
-        try {
-          const storageRef = ref(
-            firebase,
-            `${COLLECTIONS.DOCUMENTS_BLOG_COVER_PHOTOS}/${this.blogPhotoName}`
-          );
-          const snapshot = await uploadBytes(storageRef, this.file);
-          console.debug(snapshot);
-
-          const downloadURL = await getDownloadURL(storageRef);
-
-          toUpdatePhoto = {
-            photoName: this.blogPhotoName,
-            photoFileURL: downloadURL,
-          };
-        } catch {
-          console.log(err);
-        }
-      }
+      const toUpdateCoverPhoto = {};
+      const storageRef = ref(
+        storage,
+        `${COLLECTIONS.DOCUMENTS_BLOG_COVER_PHOTOS}/${this.$store.state.blog.photoName}`
+      );
 
       try {
+        if (this.file) {
+          await uploadBytes(storageRef, this.file);
+          const downloadURL = await getDownloadURL(storageRef);
+
+          toUpdateCoverPhoto = {
+            photoFileURL: downloadURL,
+            photoName: this.blogPhotoName,
+          };
+        }
+
         const docRef = doc(
           collection(firebase, COLLECTIONS.BLOG_POSTS),
-          this.$store.state.blog.id
+          this.routeID
         );
 
-        updateDoc(docRef, {
-          ...toUpdatePhoto,
+        await updateDoc(docRef, {
+          ...toUpdateCoverPhoto,
           html: this.blogHTML,
-          blogTitle: this.blogTitle,
+          title: this.blogTitle,
         });
 
-        await this.$store.dispatch(ACTIONS.UPDATE_POST, docRef.id);
+        await this.$store.dispatch(ACTIONS.UPDATE_POST, this.routeID);
+        await this.$store.commit(MUTATIONS.RESET_POST);
 
         this.$router.push({
-          name: "ViewBlog",
+          name: ROUTE_NAMES.VIEW_BLOG,
           params: { blog_id: docRef.id },
         });
-      } catch {
-        console.log(err);
+      } catch (error) {
+        this.showError(error?.message ?? error);
       } finally {
         this.loading = false;
       }
     },
   },
   computed: {
-    isOnPhotoReview() {
-      return this.$store.state.isOnPhotoReview;
+    ROUTE_NAMES() {
+      return ROUTE_NAMES;
     },
     profileId() {
-      return this.$store.state.profileId;
+      return this.$store.state.profile.id;
     },
     blogPhotoName() {
       return this.$store.state.blog.photoName;
+    },
+    blog() {
+      return this.$store.state.blog;
     },
     blogTitle: {
       get() {
         return this.$store.state.blog.title;
       },
       set(payload) {
-        this.$store.commit(ACTIONS.UPDATE_POST, {
+        this.$store.commit(MUTATIONS.SET_POST, {
           ...this.$store.state.blog,
           title: payload,
         });
@@ -199,7 +212,7 @@ export default {
         return this.$store.state.blog.html;
       },
       set(payload) {
-        this.$store.commit(ACTIONS.UPDATE_POST, {
+        this.$store.commit(MUTATIONS.SET_POST, {
           ...this.$store.state.blog,
           html: payload,
         });
@@ -210,7 +223,7 @@ export default {
 </script>
 
 <style lang="scss">
-.create-post {
+.edit-post {
   position: relative;
   height: 100%;
 

@@ -11,10 +11,15 @@
 <script>
 export default {
   name: "BlogPreview",
-  computed: {
-    blog() {
-      return this.$store.state.blog;
-    },
+  data() {
+    return {
+      blog,
+    };
+  },
+  async mounted() {
+    this.blog = await this.$store.state.blogPosts.find(
+      (post) => post.id === this.$route.params.blog_id
+    );
   },
 };
 </script>

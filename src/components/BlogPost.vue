@@ -6,14 +6,16 @@
         <p class="content-preview" v-html="post.html" />
         <router-link
           class="link"
-          :class="{ 'link-light': linkLight }"
+          :class="{ 'link-light': isWelcomePost }"
           :to="{
-            name: ROUTE_NAMES.VIEW_BLOG,
+            name: this.isWelcomePost
+              ? ROUTE_NAMES.LOGIN
+              : ROUTE_NAMES.VIEW_BLOG,
             params: { blog_id: this.post.id },
           }"
         >
           {{ post.buttonText || "View the Post" }}
-          <Arrow class="arrow" :class="{ 'arrow-light': linkLight }" />
+          <Arrow class="arrow" :class="{ 'arrow-light': isWelcomePost }" />
         </router-link>
       </div>
     </div>
@@ -29,7 +31,7 @@ import { ROUTE_NAMES } from "../router";
 
 export default {
   name: "BlogPost",
-  props: ["post", "linkLight"],
+  props: ["post", "linkLight", "isWelcomePost"],
   components: {
     Arrow,
   },

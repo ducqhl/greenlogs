@@ -163,6 +163,7 @@ export default {
         });
 
         await this.$store.dispatch(ACTIONS.GET_POSTS);
+        await this.$store.commit(MUTATIONS.RESET_POST);
 
         this.$router.push({
           name: ROUTE_NAMES.VIEW_BLOG,

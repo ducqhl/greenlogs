@@ -25,7 +25,7 @@ export default {
     };
   },
   async mounted() {
-    this.currentBlog = await this.$store.state.blogPosts.find(
+    this.currentBlog = this.$store.state.blogPosts.find(
       (post) => post.id === this.$route.params.blog_id
     );
   },

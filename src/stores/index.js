@@ -1,6 +1,8 @@
 import { createStore } from "vuex";
 import { getAuth } from "firebase/auth";
 import firestore, { firebaseApp, COLLECTIONS } from "../firebase";
+import logger from "../logger";
+
 import {
   collection,
   doc,
@@ -15,6 +17,7 @@ import {
 
 export const MUTATIONS = {
   SET_POST: "SET_POST",
+  RESET_POST: "RESET_POST",
   TOGGLE_PHOTO_PREVIEW: "OPEN_PHOTO_PREVIEW",
   TOGGLE_EDIT_POST: "TOGGLE_EDIT_POST",
   FILTER_BLOG_POST: "FILTER_BLOG_POST",
@@ -31,18 +34,20 @@ export const ACTIONS = {
   UPDATE_USER_SETTINGS: "UPDATE_USER_SETTINGS",
 };
 
+const defaultBlogState = {
+  title: "",
+  html: "",
+  photoName: "",
+  photoFileURL: null,
+  isOnPhotoReview: null,
+};
+
 const defaultState = {
   blogPosts: [],
   postLoaded: null,
   editPostMode: false,
   user: null,
-  blog: {
-    title: "",
-    html: "",
-    photoName: "",
-    photoFileURL: null,
-    isOnPhotoReview: null,
-  },
+  blog: defaultBlogState,
   // admin: null,
   profile: {
     id: null,
@@ -61,6 +66,9 @@ export const store = createStore({
   mutations: {
     [MUTATIONS.SET_POST](state, payload) {
       state.blog = payload;
+    },
+    [MUTATIONS.RESET_POST](state) {
+      state.blog = defaultBlogState;
     },
     [MUTATIONS.TOGGLE_PHOTO_PREVIEW](state) {
       state.blog.isOnPhotoReview = !state.blog.isOnPhotoReview;
@@ -82,7 +90,7 @@ export const store = createStore({
     // },
   },
   actions: {
-    async [ACTIONS.GET_CURRENT_USER]({ commit }, user) {
+    async [ACTIONS.GET_CURRENT_USER]({ commit }) {
       const auth = getAuth(firebaseApp);
       const docRef = doc(
         collection(firestore, COLLECTIONS.USERS),
@@ -144,6 +152,7 @@ export const store = createStore({
     },
   },
   modules() {},
+  plugins: [logger],
 });
 
 const fromDocumentToProfile = (doc) => {

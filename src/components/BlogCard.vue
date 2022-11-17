@@ -8,14 +8,22 @@
         <Delete class="delete" />
       </div>
     </div>
-    <img :src="post.photo" alt="" />
+    <img :src="post.photoFileURL" alt="" />
     <div class="info">
       <h4>{{ post.title }}</h4>
       <h6>
         Posted on:
         {{ new Date(post.date).toLocaleString("en-us", { dateStyle: "long" }) }}
       </h6>
-      <p>View The Post <Arrow class="arrow" /></p>
+      <router-link
+        class="link"
+        :to="{
+          name: ROUTE_NAMES.VIEW_BLOG,
+          params: { blog_id: this.post.id },
+        }"
+      >
+        View The Post <Arrow class="arrow" />
+      </router-link>
     </div>
   </div>
 </template>
@@ -38,6 +46,9 @@ export default {
   computed: {
     editPostMode() {
       return this.$store.state.editPostMode;
+    },
+    ROUTE_NAMES() {
+      return ROUTE_NAMES;
     },
   },
   methods: {

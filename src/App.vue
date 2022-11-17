@@ -1,6 +1,6 @@
 <template>
   <div class="app-wrapper">
-    <div class="app">
+    <div class="app" v-if="this.$store.state.postLoaded">
       <VueNavigation v-if="!navigation" />
       <router-view />
       <FooterVue />
@@ -46,11 +46,11 @@ export default {
       this.$store.commit(MUTATIONS.UPDATE_USER, user);
 
       if (user) {
-        this.$store.dispatch(ACTIONS.GET_CURRENT_USER, user);
+        this.$store.dispatch(ACTIONS.GET_CURRENT_USER);
       }
 
       this.checkRoute();
-      this.$store.dispatch(ACTIONS.GET_POSTS, user);
+      this.$store.dispatch(ACTIONS.GET_POSTS);
     });
   },
 };

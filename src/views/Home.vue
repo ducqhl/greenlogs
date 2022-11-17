@@ -1,10 +1,10 @@
 <template>
   <div class="home">
-    <BlogPost v-if="!user" :post="welcomeScreen" linkLight="true" />
+    <BlogPost v-if="!user" :post="welcomeScreen" isWelcomePost="true" />
     <BlogPost
       v-for="(post, index) in blogPostsFeed"
       :post="post"
-      :key="index"
+      :key="post.id"
     />
     <recent-blog-cards
       class="recent-blog-cards"
@@ -33,49 +33,48 @@ export default {
   data() {
     return {
       welcomeScreen: {
+        id: "welcome",
         title: "Welcome!",
-        blogHtml:
-          "Weekly blog articles with all things programming including HTML, CSS, JavaScript and more. Register today to never miss a post!",
+        html: "Weekly blog articles with all things programming including HTML, CSS, JavaScript and more. Register today to never miss a post!",
         buttonText: "Login/Register",
-        photo: "src/assets/images/blogPhotos/coding.jpg",
+        photoFileURL: "src/assets/images/blogPhotos/coding.jpg",
       },
       sampleBlogPost: [
         {
           title: "Sample 1",
-          blogHtml:
-            "Weekly blog articles with all things programming including HTML, CSS, JavaScript and more. Register today to never miss a post!",
-          photo: "src/assets/images/blogPhotos/designed-for-everyone.jpg",
+          html: "Weekly blog articles with all things programming including HTML, CSS, JavaScript and more. Register today to never miss a post!",
+          photoFileURL:
+            "src/assets/images/blogPhotos/designed-for-everyone.jpg",
         },
         {
           title: "Sample 2",
-          blogHtml:
-            "Weekly blog articles with all things programming including HTML, CSS, JavaScript and more. Register today to never miss a post!",
-          photo: "src/assets/images/blogPhotos/beautiful-stories.jpg",
+          html: "Weekly blog articles with all things programming including HTML, CSS, JavaScript and more. Register today to never miss a post!",
+          photoFileURL: "src/assets/images/blogPhotos/beautiful-stories.jpg",
         },
       ],
       sampleBlogCards: [
         {
           id: "1",
           title: "Blog Card #1",
-          photo: "src/assets/images/blogCards/stock-1.jpg",
+          photoFileURL: "src/assets/images/blogCards/stock-1.jpg",
           date: "May 1, 2022",
         },
         {
           id: "2",
           title: "Blog Card #2",
-          photo: "src/assets/images/blogCards/stock-2.jpg",
+          photoFileURL: "src/assets/images/blogCards/stock-2.jpg",
           date: "May 1, 2022",
         },
         {
           id: "3",
           title: "Blog Card #3",
-          photo: "src/assets/images/blogCards/stock-3.jpg",
+          photoFileURL: "src/assets/images/blogCards/stock-3.jpg",
           date: "May 1, 2022",
         },
         {
           id: "4",
           title: "Blog Card #4",
-          photo: "src/assets/images/blogCards/stock-4.jpg",
+          photoFileURL: "src/assets/images/blogCards/stock-4.jpg",
           date: "May 1, 2022",
         },
       ],
@@ -86,8 +85,10 @@ export default {
       return ROUTE_NAMES;
     },
     blogPostsFeed() {
+      debugger;
       // get first two blogs
       if (this.$store.state.blogPosts?.length > 2) {
+        console.log(this.$store.state.blogPosts.slice(0, 2));
         return this.$store.state.blogPosts.slice(0, 2);
       } else if (this.$store.state.blogPosts?.length > 0) {
         return this.$store.state.blogPosts;
@@ -100,10 +101,7 @@ export default {
       if (this.$store.state.blogPosts?.length > 6) {
         return this.$store.state.blogPosts.slice(2, 6);
       } else if (this.$store.state.blogPosts?.length > 2) {
-        return this.$store.state.blogPosts.slice(
-          2,
-          this.$store.state.blogPosts.length - 1
-        );
+        return this.$store.state.blogPosts.slice(2);
       }
 
       return this.sampleBlogCards;
