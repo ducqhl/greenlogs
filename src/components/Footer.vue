@@ -4,7 +4,7 @@
       <div class="left">
         <div class="col-1">
           <router-link class="header" :to="{ name: ROUTE_NAMES.HOME }"
-            >FireBlogs</router-link
+            >GreenLogs</router-link
           >
           <ul>
             <li>
